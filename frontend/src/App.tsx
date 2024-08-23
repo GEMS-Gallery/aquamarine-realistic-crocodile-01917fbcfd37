@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Grid, Paper, Typography, List, ListItem, ListItemText, ListItemIcon, Checkbox, IconButton, CircularProgress, Box, Fade } from '@mui/material';
+import { Container, Grid, Paper, Typography, List, ListItem, ListItemText, ListItemIcon, Checkbox, IconButton, CircularProgress, Box, Fade, AppBar, Toolbar, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -37,6 +37,28 @@ const StyledListItem = styled(ListItem)(({ theme }) => ({
     backgroundColor: theme.palette.action.hover,
   },
 }));
+
+const Header = () => (
+  <AppBar position="static" color="transparent" elevation={0}>
+    <Toolbar>
+      <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <ShoppingCartIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+        Grocery List App
+      </Typography>
+      <Button color="inherit">Home</Button>
+      <Button color="inherit">About</Button>
+      <Button color="inherit">Contact</Button>
+    </Toolbar>
+  </AppBar>
+);
+
+const Footer = () => (
+  <Box sx={{ bgcolor: 'background.paper', p: 6 }} component="footer">
+    <Typography variant="body2" color="text.secondary" align="center">
+      © 2023 Grocery List App. All rights reserved.
+    </Typography>
+  </Box>
+);
 
 const App: React.FC = () => {
   const [cartItems, setCartItems] = useState<GroceryItem[]>([]);
@@ -155,109 +177,110 @@ const App: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600, color: 'text.primary', mb: 4, display: 'flex', alignItems: 'center' }}>
-        <ShoppingCartIcon sx={{ mr: 2 }} /> Grocery List
-      </Typography>
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
-          <StyledPaper elevation={0}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3 }}>
-              Categories
-            </Typography>
-            <Box sx={{ overflowY: 'auto', flexGrow: 1, pr: 2 }}>
-              {categories.map((category) => (
-                <Box key={category.name} sx={{ mb: 4 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>{category.name}</Typography>
-                  <List>
-                    {category.items.map((item) => (
-                      <StyledListItem key={item.id.toString()}>
-                        <ListItemText primary={`${item.emoji} ${item.name}`} />
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Header />
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <StyledPaper elevation={0}>
+              <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3 }}>
+                Categories
+              </Typography>
+              <Box sx={{ overflowY: 'auto', flexGrow: 1, pr: 2 }}>
+                {categories.map((category) => (
+                  <Box key={category.name} sx={{ mb: 4 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>{category.name}</Typography>
+                    <List>
+                      {category.items.map((item) => (
+                        <StyledListItem key={item.id.toString()}>
+                          <ListItemText primary={`${item.emoji} ${item.name}`} />
+                          <IconButton
+                            edge="end"
+                            onClick={() => addToCart(item.id)}
+                            color="primary"
+                            disabled={loadingItems[item.id.toString()]}
+                          >
+                            {loadingItems[item.id.toString()] ? (
+                              <CircularProgress size={24} />
+                            ) : (
+                              <AddShoppingCartIcon />
+                            )}
+                          </IconButton>
+                        </StyledListItem>
+                      ))}
+                    </List>
+                  </Box>
+                ))}
+              </Box>
+            </StyledPaper>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <StyledPaper elevation={0}>
+              <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3 }}>
+                Shopping Cart Analysis
+              </Typography>
+              <Grid container spacing={2} sx={{ mb: 4 }}>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ height: 200 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Category Distribution</Typography>
+                    <Pie data={getCategoryData()} options={{ responsive: true, maintainAspectRatio: false }} />
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ height: 200 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Items per Category</Typography>
+                    <Bar data={getItemCountData()} options={{ responsive: true, maintainAspectRatio: false }} />
+                  </Box>
+                </Grid>
+              </Grid>
+              <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3 }}>
+                Shopping Cart
+              </Typography>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <List sx={{ flexGrow: 1, overflowY: 'auto', pr: 2 }}>
+                  {cartItems.map((item) => (
+                    <Fade in={!loadingItems[item.id.toString()]} key={item.id.toString()}>
+                      <StyledListItem>
+                        <ListItemIcon>
+                          <Checkbox
+                            edge="start"
+                            checked={item.completed}
+                            onChange={() => toggleItemCompletion(item.id)}
+                            color="secondary"
+                            disabled={loadingItems[item.id.toString()]}
+                          />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`${item.emoji} ${item.name}`}
+                          sx={{ textDecoration: item.completed ? 'line-through' : 'none' }}
+                        />
                         <IconButton
                           edge="end"
-                          onClick={() => addToCart(item.id)}
-                          color="primary"
+                          onClick={() => removeFromCart(item.id)}
+                          color="error"
                           disabled={loadingItems[item.id.toString()]}
                         >
                           {loadingItems[item.id.toString()] ? (
                             <CircularProgress size={24} />
                           ) : (
-                            <AddShoppingCartIcon />
+                            <DeleteIcon />
                           )}
                         </IconButton>
                       </StyledListItem>
-                    ))}
-                  </List>
-                </Box>
-              ))}
-            </Box>
-          </StyledPaper>
+                    </Fade>
+                  ))}
+                </List>
+              )}
+            </StyledPaper>
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={6}>
-          <StyledPaper elevation={0}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3 }}>
-              Shopping Cart Analysis
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ height: 200 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Category Distribution</Typography>
-                  <Pie data={getCategoryData()} options={{ responsive: true, maintainAspectRatio: false }} />
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ height: 200 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Items per Category</Typography>
-                  <Bar data={getItemCountData()} options={{ responsive: true, maintainAspectRatio: false }} />
-                </Box>
-              </Grid>
-            </Grid>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', my: 3 }}>
-              Shopping Cart
-            </Typography>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <List sx={{ flexGrow: 1, overflowY: 'auto', pr: 2 }}>
-                {cartItems.map((item) => (
-                  <Fade in={!loadingItems[item.id.toString()]} key={item.id.toString()}>
-                    <StyledListItem>
-                      <ListItemIcon>
-                        <Checkbox
-                          edge="start"
-                          checked={item.completed}
-                          onChange={() => toggleItemCompletion(item.id)}
-                          color="secondary"
-                          disabled={loadingItems[item.id.toString()]}
-                        />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={`${item.emoji} ${item.name}`}
-                        sx={{ textDecoration: item.completed ? 'line-through' : 'none' }}
-                      />
-                      <IconButton
-                        edge="end"
-                        onClick={() => removeFromCart(item.id)}
-                        color="error"
-                        disabled={loadingItems[item.id.toString()]}
-                      >
-                        {loadingItems[item.id.toString()] ? (
-                          <CircularProgress size={24} />
-                        ) : (
-                          <DeleteIcon />
-                        )}
-                      </IconButton>
-                    </StyledListItem>
-                  </Fade>
-                ))}
-              </List>
-            )}
-          </StyledPaper>
-        </Grid>
-      </Grid>
-    </Container>
+      </Container>
+      <Footer />
+    </Box>
   );
 };
 

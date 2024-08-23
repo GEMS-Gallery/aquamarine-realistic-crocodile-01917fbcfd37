@@ -8,13 +8,13 @@ import CssBaseline from '@mui/material/CssBaseline';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#3B82F6',
+      main: '#635BFF',
     },
     secondary: {
-      main: '#10B981',
+      main: '#00D4FF',
     },
     background: {
-      default: '#F3F4F6',
+      default: '#F6F9FC',
     },
   },
   typography: {
@@ -59,7 +59,7 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
         },
       },
     },

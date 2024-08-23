@@ -3,7 +3,12 @@ import { backend } from 'declarations/backend';
 import { Container, Grid, Paper, Typography, List, ListItem, ListItemText, ListItemIcon, Checkbox, IconButton, CircularProgress, Box, Fade } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { styled } from '@mui/material/styles';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface GroceryItem {
   id: bigint;
@@ -100,10 +105,38 @@ const App: React.FC = () => {
     }
   };
 
+  const getCategoryData = () => {
+    const categoryCount: { [key: string]: number } = {};
+    cartItems.forEach(item => {
+      const category = categories.find(cat => cat.items.some(catItem => catItem.id === item.id));
+      if (category) {
+        categoryCount[category.name] = (categoryCount[category.name] || 0) + 1;
+      }
+    });
+    return {
+      labels: Object.keys(categoryCount),
+      datasets: [
+        {
+          data: Object.values(categoryCount),
+          backgroundColor: [
+            '#FF6384',
+            '#36A2EB',
+            '#FFCE56',
+            '#4BC0C0',
+            '#9966FF',
+            '#FF9F40',
+            '#FF6384',
+            '#C9CBCF',
+          ],
+        },
+      ],
+    };
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600, color: 'text.primary', mb: 4 }}>
-        Grocery List
+      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600, color: 'text.primary', mb: 4, display: 'flex', alignItems: 'center' }}>
+        <ShoppingCartIcon sx={{ mr: 2 }} /> Grocery List
       </Typography>
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
@@ -149,39 +182,45 @@ const App: React.FC = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              <List sx={{ flexGrow: 1, overflowY: 'auto', pr: 2 }}>
-                {cartItems.map((item) => (
-                  <Fade in={!loadingItems[item.id.toString()]} key={item.id.toString()}>
-                    <StyledListItem>
-                      <ListItemIcon>
-                        <Checkbox
-                          edge="start"
-                          checked={item.completed}
-                          onChange={() => toggleItemCompletion(item.id)}
-                          color="secondary"
-                          disabled={loadingItems[item.id.toString()]}
+              <>
+                <List sx={{ flexGrow: 1, overflowY: 'auto', pr: 2, mb: 3 }}>
+                  {cartItems.map((item) => (
+                    <Fade in={!loadingItems[item.id.toString()]} key={item.id.toString()}>
+                      <StyledListItem>
+                        <ListItemIcon>
+                          <Checkbox
+                            edge="start"
+                            checked={item.completed}
+                            onChange={() => toggleItemCompletion(item.id)}
+                            color="secondary"
+                            disabled={loadingItems[item.id.toString()]}
+                          />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`${item.emoji} ${item.name}`}
+                          sx={{ textDecoration: item.completed ? 'line-through' : 'none' }}
                         />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={`${item.emoji} ${item.name}`}
-                        sx={{ textDecoration: item.completed ? 'line-through' : 'none' }}
-                      />
-                      <IconButton
-                        edge="end"
-                        onClick={() => removeFromCart(item.id)}
-                        color="error"
-                        disabled={loadingItems[item.id.toString()]}
-                      >
-                        {loadingItems[item.id.toString()] ? (
-                          <CircularProgress size={24} />
-                        ) : (
-                          <DeleteIcon />
-                        )}
-                      </IconButton>
-                    </StyledListItem>
-                  </Fade>
-                ))}
-              </List>
+                        <IconButton
+                          edge="end"
+                          onClick={() => removeFromCart(item.id)}
+                          color="error"
+                          disabled={loadingItems[item.id.toString()]}
+                        >
+                          {loadingItems[item.id.toString()] ? (
+                            <CircularProgress size={24} />
+                          ) : (
+                            <DeleteIcon />
+                          )}
+                        </IconButton>
+                      </StyledListItem>
+                    </Fade>
+                  ))}
+                </List>
+                <Box sx={{ height: 300 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Category Distribution</Typography>
+                  <Pie data={getCategoryData()} options={{ responsive: true, maintainAspectRatio: false }} />
+                </Box>
+              </>
             )}
           </StyledPaper>
         </Grid>

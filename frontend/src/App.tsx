@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Grid, Paper, Typography, List, ListItem, ListItemText, ListItemIcon, Checkbox, IconButton, CircularProgress } from '@mui/material';
+import { Container, Grid, Paper, Typography, List, ListItem, ListItemText, ListItemIcon, Checkbox, IconButton, CircularProgress, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 
 interface GroceryItem {
   id: bigint;
@@ -16,22 +17,22 @@ interface Category {
 }
 
 const App: React.FC = () => {
-  const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
+  const [cartItems, setCartItems] = useState<GroceryItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchGroceryItems();
+    fetchCartItems();
     fetchCategories();
   }, []);
 
-  const fetchGroceryItems = async () => {
+  const fetchCartItems = async () => {
     try {
-      const items = await backend.getItems();
-      setGroceryItems(items);
+      const items = await backend.getCartItems();
+      setCartItems(items);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching grocery items:', error);
+      console.error('Error fetching cart items:', error);
       setLoading(false);
     }
   };
@@ -45,11 +46,23 @@ const App: React.FC = () => {
     }
   };
 
+  const addToCart = async (id: bigint) => {
+    setLoading(true);
+    try {
+      await backend.addToCart(id);
+      fetchCartItems();
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleItemCompletion = async (id: bigint) => {
     setLoading(true);
     try {
       await backend.toggleItemCompletion(id);
-      fetchGroceryItems();
+      fetchCartItems();
     } catch (error) {
       console.error('Error toggling item completion:', error);
     } finally {
@@ -57,13 +70,13 @@ const App: React.FC = () => {
     }
   };
 
-  const removeItem = async (id: bigint) => {
+  const removeFromCart = async (id: bigint) => {
     setLoading(true);
     try {
-      await backend.removeItem(id);
-      fetchGroceryItems();
+      await backend.removeFromCart(id);
+      fetchCartItems();
     } catch (error) {
-      console.error('Error removing item:', error);
+      console.error('Error removing item from cart:', error);
     } finally {
       setLoading(false);
     }
@@ -75,30 +88,38 @@ const App: React.FC = () => {
         Grocery List App
       </Typography>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <Paper elevation={3} style={{ padding: '1rem' }}>
             <Typography variant="h5" gutterBottom>
               Categories
             </Typography>
-            <List>
-              {categories.map((category) => (
-                <ListItem key={category.name}>
-                  <ListItemText primary={category.name} />
-                </ListItem>
-              ))}
-            </List>
+            {categories.map((category) => (
+              <div key={category.name}>
+                <Typography variant="h6">{category.name}</Typography>
+                <List>
+                  {category.items.map((item) => (
+                    <ListItem key={item.id.toString()}>
+                      <ListItemText primary={`${item.emoji} ${item.name}`} />
+                      <IconButton edge="end" onClick={() => addToCart(item.id)}>
+                        <AddShoppingCartIcon />
+                      </IconButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </div>
+            ))}
           </Paper>
         </Grid>
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={6}>
           <Paper elevation={3} style={{ padding: '1rem' }}>
             <Typography variant="h5" gutterBottom>
-              Grocery List
+              Shopping Cart
             </Typography>
             {loading ? (
               <CircularProgress />
             ) : (
               <List>
-                {groceryItems.map((item) => (
+                {cartItems.map((item) => (
                   <ListItem key={item.id.toString()}>
                     <ListItemIcon>
                       <Checkbox
@@ -111,7 +132,7 @@ const App: React.FC = () => {
                       primary={`${item.emoji} ${item.name}`}
                       style={{ textDecoration: item.completed ? 'line-through' : 'none' }}
                     />
-                    <IconButton edge="end" onClick={() => removeItem(item.id)}>
+                    <IconButton edge="end" onClick={() => removeFromCart(item.id)}>
                       <DeleteIcon />
                     </IconButton>
                   </ListItem>

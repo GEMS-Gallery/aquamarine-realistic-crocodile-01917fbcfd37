@@ -16,13 +16,11 @@ export interface GroceryItem {
 }
 export type Result = { 'ok' : null } |
   { 'err' : string };
-export type Result_1 = { 'ok' : bigint } |
-  { 'err' : string };
 export interface _SERVICE {
-  'addItem' : ActorMethod<[string, string, [] | [bigint]], Result_1>,
+  'addToCart' : ActorMethod<[bigint], Result>,
+  'getCartItems' : ActorMethod<[], Array<GroceryItem>>,
   'getCategories' : ActorMethod<[], Array<Category>>,
-  'getItems' : ActorMethod<[], Array<GroceryItem>>,
-  'removeItem' : ActorMethod<[bigint], Result>,
+  'removeFromCart' : ActorMethod<[bigint], Result>,
   'toggleItemCompletion' : ActorMethod<[bigint], Result>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;

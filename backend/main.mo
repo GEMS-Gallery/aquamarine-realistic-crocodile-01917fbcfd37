@@ -30,6 +30,7 @@ actor {
   stable var nextId: Nat = 0;
   stable var needsInitialization : Bool = true;
   let groceryList = HashMap.HashMap<Nat, GroceryItem>(10, Nat.equal, Hash.hash);
+  let cart = HashMap.HashMap<Nat, GroceryItem>(10, Nat.equal, Hash.hash);
 
   let categories : [Category] = [
     {
@@ -119,26 +120,36 @@ actor {
     }
   ];
 
-  public func addItem(name: Text, emoji: Text, id: ?Nat) : async Result.Result<Nat, Text> {
-    let itemId = switch (id) {
-      case (null) { nextId };
-      case (?existingId) { existingId };
-    };
-    nextId += 1;
-    let item: GroceryItem = {
-      id = itemId;
-      name = name;
-      emoji = emoji;
-      completed = false;
-    };
-    groceryList.put(itemId, item);
-    #ok(itemId)
+  public func addToCart(id: Nat) : async Result.Result<(), Text> {
+    switch (groceryList.get(id)) {
+      case (null) {
+        for (category in categories.vals()) {
+          for (item in category.items.vals()) {
+            if (item.id == id) {
+              let cartItem: GroceryItem = {
+                id = item.id;
+                name = item.name;
+                emoji = item.emoji;
+                completed = false;
+              };
+              cart.put(id, cartItem);
+              return #ok();
+            };
+          };
+        };
+        #err("Item not found")
+      };
+      case (?item) {
+        cart.put(id, item);
+        #ok()
+      };
+    }
   };
 
   public func toggleItemCompletion(id: Nat) : async Result.Result<(), Text> {
-    switch (groceryList.get(id)) {
+    switch (cart.get(id)) {
       case (null) {
-        #err("Item not found")
+        #err("Item not found in cart")
       };
       case (?item) {
         let updatedItem = {
@@ -147,16 +158,16 @@ actor {
           emoji = item.emoji;
           completed = not item.completed;
         };
-        groceryList.put(id, updatedItem);
+        cart.put(id, updatedItem);
         #ok()
       };
     }
   };
 
-  public func removeItem(id: Nat) : async Result.Result<(), Text> {
-    switch (groceryList.remove(id)) {
+  public func removeFromCart(id: Nat) : async Result.Result<(), Text> {
+    switch (cart.remove(id)) {
       case (null) {
-        #err("Item not found")
+        #err("Item not found in cart")
       };
       case (?_) {
         #ok()
@@ -164,21 +175,11 @@ actor {
     }
   };
 
-  public query func getItems() : async [GroceryItem] {
-    Iter.toArray(Iter.map(groceryList.entries(), func (entry : (Nat, GroceryItem)) : GroceryItem { entry.1 }))
+  public query func getCartItems() : async [GroceryItem] {
+    Iter.toArray(Iter.map(cart.entries(), func (entry : (Nat, GroceryItem)) : GroceryItem { entry.1 }))
   };
 
   public query func getCategories() : async [Category] {
     categories
-  };
-
-  private func initializeGroceryList() : async () {
-    if (groceryList.size() == 0) {
-      for (category in categories.vals()) {
-        for (item in category.items.vals()) {
-          ignore await addItem(item.name, item.emoji, ?item.id);
-        };
-      };
-    };
   };
 }

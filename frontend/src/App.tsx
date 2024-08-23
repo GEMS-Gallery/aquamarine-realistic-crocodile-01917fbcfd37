@@ -226,7 +226,7 @@ const App: React.FC = () => {
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3 }}>
                 Shopping Cart Analysis
               </Typography>
-              <Grid container spacing={2} sx={{ mb: 4 }}>
+              <Grid container spacing={2} sx={{ mb: 6 }}>
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ height: 200 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Category Distribution</Typography>
@@ -240,7 +240,7 @@ const App: React.FC = () => {
                   </Box>
                 </Grid>
               </Grid>
-              <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3 }}>
+              <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3, mt: 4 }}>
                 Shopping Cart
               </Typography>
               {loading ? (

@@ -4,6 +4,7 @@ import { Container, Grid, Paper, Typography, List, ListItem, ListItemText, ListI
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import { styled } from '@mui/material/styles';
 import { Pie, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
@@ -45,9 +46,15 @@ const Header = () => (
         <ShoppingCartIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
         Grocery List App
       </Typography>
-      <Button color="inherit">Home</Button>
-      <Button color="inherit">About</Button>
-      <Button color="inherit">Contact</Button>
+      <Button
+        color="inherit"
+        startIcon={<GitHubIcon />}
+        href="https://github.com/GEMS-Gallery/aquamarine-realistic-crocodile-01917fbcfd37"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Show Code
+      </Button>
     </Toolbar>
   </AppBar>
 );
@@ -55,7 +62,7 @@ const Header = () => (
 const Footer = () => (
   <Box sx={{ bgcolor: 'background.paper', p: 6 }} component="footer">
     <Typography variant="body2" color="text.secondary" align="center">
-      © 2023 Grocery List App. All rights reserved.
+      © 2024 Grocery List App. All rights reserved.
     </Typography>
   </Box>
 );

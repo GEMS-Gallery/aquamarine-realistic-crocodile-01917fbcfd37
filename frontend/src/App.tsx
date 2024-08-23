@@ -5,10 +5,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { styled } from '@mui/material/styles';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Pie, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 interface GroceryItem {
   id: bigint;
@@ -133,6 +133,27 @@ const App: React.FC = () => {
     };
   };
 
+  const getItemCountData = () => {
+    const categoryCount: { [key: string]: number } = {};
+    categories.forEach(category => {
+      categoryCount[category.name] = cartItems.filter(item =>
+        category.items.some(catItem => catItem.id === item.id)
+      ).length;
+    });
+    return {
+      labels: Object.keys(categoryCount),
+      datasets: [
+        {
+          label: 'Items per Category',
+          data: Object.values(categoryCount),
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1,
+        },
+      ],
+    };
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600, color: 'text.primary', mb: 4, display: 'flex', alignItems: 'center' }}>
@@ -175,6 +196,23 @@ const App: React.FC = () => {
         <Grid item xs={12} md={6}>
           <StyledPaper elevation={0}>
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', mb: 3 }}>
+              Shopping Cart Analysis
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ height: 200 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Category Distribution</Typography>
+                  <Pie data={getCategoryData()} options={{ responsive: true, maintainAspectRatio: false }} />
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ height: 200 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Items per Category</Typography>
+                  <Bar data={getItemCountData()} options={{ responsive: true, maintainAspectRatio: false }} />
+                </Box>
+              </Grid>
+            </Grid>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary', my: 3 }}>
               Shopping Cart
             </Typography>
             {loading ? (
@@ -182,45 +220,39 @@ const App: React.FC = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              <>
-                <List sx={{ flexGrow: 1, overflowY: 'auto', pr: 2, mb: 3 }}>
-                  {cartItems.map((item) => (
-                    <Fade in={!loadingItems[item.id.toString()]} key={item.id.toString()}>
-                      <StyledListItem>
-                        <ListItemIcon>
-                          <Checkbox
-                            edge="start"
-                            checked={item.completed}
-                            onChange={() => toggleItemCompletion(item.id)}
-                            color="secondary"
-                            disabled={loadingItems[item.id.toString()]}
-                          />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={`${item.emoji} ${item.name}`}
-                          sx={{ textDecoration: item.completed ? 'line-through' : 'none' }}
-                        />
-                        <IconButton
-                          edge="end"
-                          onClick={() => removeFromCart(item.id)}
-                          color="error"
+              <List sx={{ flexGrow: 1, overflowY: 'auto', pr: 2 }}>
+                {cartItems.map((item) => (
+                  <Fade in={!loadingItems[item.id.toString()]} key={item.id.toString()}>
+                    <StyledListItem>
+                      <ListItemIcon>
+                        <Checkbox
+                          edge="start"
+                          checked={item.completed}
+                          onChange={() => toggleItemCompletion(item.id)}
+                          color="secondary"
                           disabled={loadingItems[item.id.toString()]}
-                        >
-                          {loadingItems[item.id.toString()] ? (
-                            <CircularProgress size={24} />
-                          ) : (
-                            <DeleteIcon />
-                          )}
-                        </IconButton>
-                      </StyledListItem>
-                    </Fade>
-                  ))}
-                </List>
-                <Box sx={{ height: 300 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 2 }}>Category Distribution</Typography>
-                  <Pie data={getCategoryData()} options={{ responsive: true, maintainAspectRatio: false }} />
-                </Box>
-              </>
+                        />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={`${item.emoji} ${item.name}`}
+                        sx={{ textDecoration: item.completed ? 'line-through' : 'none' }}
+                      />
+                      <IconButton
+                        edge="end"
+                        onClick={() => removeFromCart(item.id)}
+                        color="error"
+                        disabled={loadingItems[item.id.toString()]}
+                      >
+                        {loadingItems[item.id.toString()] ? (
+                          <CircularProgress size={24} />
+                        ) : (
+                          <DeleteIcon />
+                        )}
+                      </IconButton>
+                    </StyledListItem>
+                  </Fade>
+                ))}
+              </List>
             )}
           </StyledPaper>
         </Grid>
